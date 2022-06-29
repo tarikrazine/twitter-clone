@@ -10,6 +10,7 @@ import fastifyCookie from "@fastify/cookie";
 import fastifyJwt from "@fastify/jwt";
 
 import UserResolver from "./modules/user/user.resolver";
+import { User } from "@prisma/client";
 
 const app = fastify({
     logger: true,
@@ -38,6 +39,8 @@ app.register(fastifyJwt, {
     }
 })
 
+type CtxUser = Omit<User, 'password'>
+
 async function buildContext({
     request,
     reply,
@@ -54,7 +57,7 @@ async function buildContext({
 
         try {
             return {
-                user: app.jwt.verify(
+                user: app.jwt.verify<CtxUser>(
                     connectionParams?.Authorization || ''
                 )
             }
@@ -68,7 +71,7 @@ async function buildContext({
 
     try {
 
-        const user = await request?.jwtVerify()
+        const user = await request?.jwtVerify<CtxUser>()
 
         return {
             request,

@@ -38,3 +38,18 @@ export class LoginUserInput {
     @Length(8, 56)
     password: string
 }
+
+@ObjectType()
+export class UserFollowers {
+    @Field()
+    count: number
+
+    @Field(() => [User])
+    items: User[]
+}
+
+@InputType()
+export class UserFollowInput {
+    @Field()
+    username: string
+}

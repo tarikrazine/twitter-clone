@@ -29,3 +29,22 @@ export async function findUserOrEmail(input: LoginUserInput['emailOrUsername']) 
         }
     })
 }
+
+export function followingUser({ id, username }: { id: string, username: string }) {
+    return prisma.user.update({
+        where: {
+            id
+        },
+        data: {
+            following: {
+                connect: {
+                    username
+                }
+            }
+        }
+    })
+}
+
+export function getAllUsers(){
+    return prisma.user.findMany()
+}
