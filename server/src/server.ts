@@ -27,8 +27,8 @@ app.register(fastifyCors, {
 })
 
 app.register(fastifyCookie, {
-    parseOptions: {}
-})
+    parseOptions: {},
+});
 
 app.register(fastifyJwt, {
     secret: "change-me",
@@ -40,31 +40,31 @@ app.register(fastifyJwt, {
 
 async function buildContext({
     request,
-    replay,
+    reply,
     connectionParams
 }: {
     request?: FastifyRequest,
-    replay?: FastifyReply,
+    reply?: FastifyReply,
     connectionParams?: {
         Authorization: string
     }
 }) {
 
-        if (connectionParams || !request) {
+    if (connectionParams || !request) {
 
-            try {
-                return {
-                    user: app.jwt.verify(
-                        connectionParams?.Authorization || ''
-                    )
-                }
-            } catch (e) {
-                return {
-                    user: null
-                }
+        try {
+            return {
+                user: app.jwt.verify(
+                    connectionParams?.Authorization || ''
+                )
             }
-
+        } catch (e) {
+            return {
+                user: null
+            }
         }
+
+    }
 
     try {
 
@@ -72,14 +72,14 @@ async function buildContext({
 
         return {
             request,
-            replay,
+            reply,
             user
         }
 
     } catch(e) {
         return {
             request,
-            replay,
+            reply,
             user: null
         }
     }

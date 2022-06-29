@@ -28,3 +28,13 @@ export class RegisterUserInput {
     @Length(8, 56)
     password: string
 }
+
+@InputType()
+export class LoginUserInput {
+    @Field({ nullable: false })
+    emailOrUsername: string
+
+    @Field()
+    @Length(8, 56)
+    password: string
+}
