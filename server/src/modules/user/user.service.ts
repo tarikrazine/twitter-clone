@@ -45,6 +45,51 @@ export function followingUser({ id, username }: { id: string, username: string }
     })
 }
 
+export function unFollowingUser({ id, username }: { id: string, username: string }) {
+    return prisma.user.update({
+        where: {
+            id
+        },
+        data: {
+            following: {
+                disconnect: {
+                    username
+                }
+            }
+        }
+    })
+}
+
 export function getAllUsers(){
     return prisma.user.findMany()
+}
+
+export function findUserFollowing(userId: string) {
+    return prisma.user.findUnique({
+        where: {
+            id: userId
+        },
+        select: {
+            following: true
+        }
+    })
+}
+
+export function findUserFollowers(userId: string) {
+    return prisma.user.findUnique({
+        where: {
+            id: userId
+        },
+        select: {
+            followedBy: true
+        }
+    })
+}
+
+export function findUserById(userId: string) {
+    return prisma.user.findUnique({
+        where: {
+            id: userId
+        }
+    })
 }

@@ -1,10 +1,10 @@
 import { ApolloError } from "apollo-server-core";
-import { Arg, Ctx, FieldResolver, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Authorized, Ctx, FieldResolver, Mutation, Query, Resolver, Root } from "type-graphql";
 import argon2 from "argon2";
 
 import { Context } from "../../server";
 import { RegisterUserInput, LoginUserInput, User, UserFollowers, UserFollowInput } from "./user.dto";
-import { findUserOrEmail, registerUser, followingUser, getAllUsers } from "./user.service";
+import { findUserOrEmail, registerUser, followingUser, getAllUsers, findUserFollowing, findUserFollowers, unFollowingUser } from "./user.service";
 
 @Resolver(of => User)
 class UserResolver {
@@ -57,16 +57,19 @@ class UserResolver {
         return token
     }
 
+    @Authorized()
     @Query(() => User)
     async me(@Ctx() ctx: Context) {
         return ctx.user
     }
 
+    @Authorized()
     @Query(() => [User])
     async users() {
         return getAllUsers()
     }
 
+    @Authorized()
     @Mutation(() => User)
     async followUser(@Arg('input') input: UserFollowInput, 
     @Ctx() ctx: Context) {
@@ -86,19 +89,45 @@ class UserResolver {
         }
     }
 
-    @FieldResolver(() => UserFollowers)
-    async followers(@Ctx() ctx: Context) {
-        return {
-            count: 0,
-            items: [],
+    @Authorized()
+    @Mutation(() => User)
+    async unFollowUser(@Arg('input') input: UserFollowInput, 
+    @Ctx() ctx: Context) {
+        try {
+
+            const user = ctx.user
+
+            const result = await unFollowingUser({
+                id: user?.id!,
+                username: input.username,
+            })
+
+            return result
+
+        } catch (e: any) {
+            throw new ApolloError(e)
         }
     }
 
     @FieldResolver(() => UserFollowers)
-    async following(@Ctx() ctx: Context) {
+    async followers(@Root() user: User) {
+
+        const followersUser = await findUserFollowers(user.id)
+
         return {
-            count: 0,
-            items: [],
+            count: followersUser?.followedBy?.length || 0,
+            items: followersUser?.followedBy || [],
+        }
+    }
+
+    @FieldResolver(() => UserFollowers)
+    async following(@Root() user: User) {
+
+        const followingUser = await findUserFollowing(user.id)
+
+        return {
+            count: followingUser?.following?.length || 0,
+            items: followingUser?.following || [],
         }
     }
 }

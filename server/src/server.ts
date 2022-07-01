@@ -11,6 +11,8 @@ import fastifyJwt from "@fastify/jwt";
 
 import UserResolver from "./modules/user/user.resolver";
 import { User } from "@prisma/client";
+import { bearerAuthChecker } from "./utils/BearerAuthChecker";
+import MessageResolver from "./modules/message/message.resolver";
 
 const app = fastify({
     logger: true,
@@ -106,7 +108,8 @@ function fastifyAppClosePlugin(app: FastifyInstance): ApolloServerPlugin {
 export async function createServer() {
 
     const schema = await buildSchema({
-        resolvers: [UserResolver]
+        resolvers: [UserResolver, MessageResolver],
+        authChecker: bearerAuthChecker
     })
 
     const server = new ApolloServer({
