@@ -1,4 +1,4 @@
-import { Arg, Authorized, Ctx, FieldResolver, Mutation, Query, Resolver, Root } from "type-graphql";
+import { Arg, Authorized, Ctx, FieldResolver, Mutation, PubSub, PubSubEngine, Query, Resolver, Root, Subscription } from "type-graphql";
 
 import { Context } from "../../server";
 import { findUserById } from "../user/user.service";
@@ -10,9 +10,17 @@ class MessageResolver {
 
     @Authorized()
     @Mutation(() => Message)
-    async createMessage(@Arg("input") input: CreateMessageInput, @Ctx() ctx: Context) {
+    async createMessage(
+        @Arg("input") input: CreateMessageInput, 
+        @Ctx() ctx: Context,
+        @PubSub() pubsub: PubSubEngine
+        ) {
 
         const message =  await createMessage({input, userId: ctx.user?.id!});
+
+        await pubsub.publish("NEW_MESSAGE", {
+            newMessage: message
+        });
 
         return message;
     }
@@ -26,6 +34,12 @@ class MessageResolver {
     @FieldResolver()
     async user(@Root()  message: Message) {
         return findUserById(message.userId);
+    }
+
+    @Subscription(() => Message, {      
+        topics: "NEW_MESSAGE"} )
+    newMessage(@Root() message: Message) {
+        return message;
     }
 }
 
